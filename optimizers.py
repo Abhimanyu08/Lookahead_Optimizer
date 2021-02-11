@@ -80,15 +80,15 @@ class Step(Stat):
 
 
 class LookAheadStat(Stat):
-    _defaults = dict(k=10, alpha = 0.8)
     def init_state(self,p): return {'slow_wgts': p.data.clone().detach()}
-    def update(self,state,p,k,alpha,**kwargs):
-        if state['step'] == k:
-            state['slow_wgts'] += alpha *(p.data - state['slow_wgts'])
+    def update(self, state, p, k,**kwargs):
+        if state['step'] %k == 1 and state['step'] > k:
+            state['slow_wgts'] = p.data.clone().detach()
         return state
 
-def lookahead_step(p, alpha, slow_wgts,k,step,**kwargs):
-    if step == k:
+def lookahead_step(p, alpha, k, slow_wgts: torch.Tensor, step,**kwargs):
+    if step % k == 0:
+        slow_wgts.data.add_(p.data - slow_wgts, alpha = alpha)
         p.data.copy_(slow_wgts)
     return p
 
